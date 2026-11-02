@@ -1,0 +1,41 @@
+name: Replace repository author
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  replace-author:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install document libraries
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install python-docx python-pptx pymupdf
+
+      - name: Replace author name in project files
+        run: python .github/scripts/replace_author.py
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No matching author text or filenames found."
+          else
+            git commit -m "Replace Anant Guhey with Aditya Rohira"
+            git push
+          fi
